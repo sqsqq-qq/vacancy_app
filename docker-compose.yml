@@ -1,0 +1,12 @@
+# docker-compose.yml — кладите в корень репозитория, рядом с Dockerfile
+
+services:
+  vacancy-app:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # Монтируем исходные данные "только для чтения": нужно лишь в том случае,
+      # если vacancy_app/vacancies.db отсутствует/пуст и БД нужно собрать с нуля.
+      # Если vacancies.db уже есть в образе — этот том просто не используется.
+      - ./TSSAa_extracted:/app/TSSAa_extracted:ro

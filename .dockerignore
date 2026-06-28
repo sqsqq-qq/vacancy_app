@@ -1,0 +1,9 @@
+TSSAa_extracted/
+.git/
+.gitignore
+.pytest_cache/
+__pycache__/
+*.pyc
+.coverage
+README.md
+docker-compose.yml
