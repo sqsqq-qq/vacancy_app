@@ -105,7 +105,8 @@
 
 ## Установка и запуск локально
 
-Команды ниже выполняются **из корня репозитория** (там, где лежит этот README).
+
+
 
 ### Windows (Python launcher `py`)
 
@@ -133,14 +134,10 @@ python3 vacancy_app/app.py
 http://localhost:5000
 ```
 
-При первом запуске, если `vacancy_app/vacancies.db` пуст или отсутствует,
-приложение автоматически прочитает `TSSAa_extracted/TSSAa/hh_raw_vacancies.jsonl`
-и заполнит базу (см. раздел выше про сырые данные).
 
 ## Тесты
 
-Тесты лежат в `vacancy_app/tests/test_app.py`. Запускать их также нужно
-**из корня репозитория**:
+Тесты лежат в `vacancy_app/tests/test_app.py`. 
 
 ```bash
 # Windows
@@ -178,7 +175,7 @@ docker run -p 5000:5000 vacancy-app
 
 Открыть в браузере: http://localhost:5000
 
-### Через docker-compose (проще)
+### Через docker-compose 
 
 ```bash
 docker compose up --build
@@ -190,54 +187,5 @@ docker compose up --build
 docker compose down
 ```
 
-### Если нужно пересобрать БД из исходного jsonl внутри контейнера
 
-`docker-compose.yml` дополнительно монтирует папку `TSSAa_extracted/` внутрь
-контейнера в режиме "только чтение". Если вы удалили `vacancy_app/vacancies.db`
-перед сборкой образа, при старте контейнера база будет собрана из
-смонтированного `hh_raw_vacancies.jsonl` автоматически.
 
-## Как залить проект на GitHub
-
-Если у вас ещё нет git-репозитория в этой папке — выполните по порядку
-(команды одинаковы для Windows/Linux/macOS, выполнять из корня проекта,
-там же где лежит этот README, `Dockerfile` и т.д.):
-
-```bash
-# 1. Инициализировать репозиторий (если ещё не сделано)
-git init
-
-# 2. Добавить файлы (.gitignore уже исключит лишнее: __pycache__, .pytest_cache,
-#    .coverage, и главное — папку TSSAa_extracted с большим jsonl-файлом)
-git add .
-
-# 3. Сделать первый коммит
-git commit -m "Initial commit: vacancy analysis dashboard"
-
-# 4. Создать пустой репозиторий на github.com (через сайт, без README/license —
-#    они уже есть локально), скопировать его URL, например:
-#    https://github.com/<ваш_логин>/<название_репозитория>.git
-
-# 5. Привязать удалённый репозиторий
-git remote add origin https://github.com/<ваш_логин>/<название_репозитория>.git
-
-# 6. Назвать основную ветку main (если она называется master)
-git branch -M main
-
-# 7. Запушить
-git push -u origin main
-```
-
-Если репозиторий на GitHub уже существует и просто нужно обновить код:
-
-```bash
-git add .
-git commit -m "Update: README, Dockerfile, .gitignore"
-git push
-```
-
-**Важно:** перед первым `git add .` убедитесь, что `.gitignore` лежит в корне
-репозитория — иначе git попытается добавить 500-мегабайтный `hh_raw_vacancies.jsonl`,
-и GitHub отклонит push. Если вы уже закоммитили этот файл раньше по ошибке,
-его нужно убрать из истории git (например, через `git rm --cached <путь>` и новый
-коммит), иначе он останется в истории репозитория даже после удаления.
