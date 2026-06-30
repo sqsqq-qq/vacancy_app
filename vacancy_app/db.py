@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 DB_PATH = Path(__file__).parent / "vacancies.db"
 JSONL_PATH = Path(__file__).parent.parent / "TSSAa_extracted/TSSAa/hh_raw_vacancies.jsonl"
 
-# ---- классификация по названию ----
+# классификация по названию 
 _RULES = [
     (("системный аналитик", "system analyst"), "System Analyst"),
     (("технический писатель", "technical writer"), "Technical Writer"),
@@ -34,7 +34,7 @@ def classify_vacancy(name: str) -> str | None:
     return None
 
 
-# ---- парсинг HTML-описания ----
+#  парсинг HTML-описания 
 _SECTION_KW = {
     "responsibilities": ("обязанност", "задач", "функци", "что нужно делать", "чем предстоит"),
     "requirements": ("требован", "что мы ждём", "что ждём", "от вас", "от кандидата", "необходим"),
@@ -64,7 +64,7 @@ def parse_description(html: str) -> dict:
     return {**sections, "raw_text": soup.get_text(separator=" ", strip=True)[:4000]}
 
 
-# ---- извлечение навыков ----
+#  извлечение навыков 
 SKILL_PATTERNS = [
     r"\bSQL\b", r"\bPython\b", r"\bJira\b", r"\bConfluence\b",
     r"\bBPMN\b", r"\bUML\b", r"\bAgile\b", r"\bScrum\b", r"\bKanban\b",
@@ -81,7 +81,7 @@ def extract_skills(text: str) -> list[str]:
     return [name for name, pat in zip(SKILL_NAMES, SKILL_PATTERNS) if re.search(pat, text, re.IGNORECASE)]
 
 
-# ---- извлечение зарплаты (в исходных данных нет структурированного поля
+# извлечение зарплаты (в исходных данных нет структурированного поля
 # salary, поэтому ищем числа рядом со словами "оклад"/"доход"/"зарплата") ----
 _SALARY_KW = re.compile(r"(оклад|доход|зарплат|заработная плата|з/?п\b)", re.IGNORECASE)
 _SALARY_NUM = re.compile(r"(\d+(?:[\s.,]\d{3})*)")
@@ -111,7 +111,7 @@ def extract_salary(text: str) -> tuple[int | None, int | None]:
     return None, None
 
 
-# ---- работа с БД ----
+# работа с БД 
 def create_db(conn: sqlite3.Connection) -> None:
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS vacancies (
@@ -196,7 +196,7 @@ def load_data(jsonl_path: Path = JSONL_PATH, db_path: Path = DB_PATH) -> int:
     return inserted
 
 
-# ---- запросы ----
+# запросы 
 def top_counts(values: list[str], n: int = 20) -> list[dict]:
     counter = Counter(v.strip() for v in values if v and v.strip())
     return [{"name": name, "count": count} for name, count in counter.most_common(n)]
@@ -241,11 +241,22 @@ def get_generalized_vacancy(profession: str) -> dict:
 
     all_skills = [s for (sj,) in conn.execute("SELECT skills_json FROM vacancies WHERE profession=?", (profession,))
                   for s in json.loads(sj or "[]")]
+
+    salary_rows = conn.execute(
+        """SELECT salary_from, salary_to FROM vacancies
+           WHERE profession=? AND salary_from IS NOT NULL AND salary_to IS NOT NULL""",
+        (profession,)
+    ).fetchall()
     conn.close()
+
+    salary_from = min((r[0] for r in salary_rows), default=None)
+    salary_to = max((r[1] for r in salary_rows), default=None)
 
     return {
         "profession": profession,
         **result,
+        "salary_from": salary_from,
+        "salary_to": salary_to,
         "top_skills": [{"skill": c["name"], "count": c["count"]} for c in top_counts(all_skills, n=15)],
     }
 
